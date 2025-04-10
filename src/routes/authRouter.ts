@@ -26,7 +26,7 @@ router.post('/create-account',
     AuthController.createAccount
 );
 
-router.get('/login',
+router.post('/login',
     body('email')
         .isEmail().withMessage('Email is not valid'),
 

@@ -16,19 +16,23 @@ export class AuthController {
 
         //checl if the user already exists
         try {
+            
             const emailExists = await User.findOne({ where: { email } })
             if (emailExists) {
-                const error = new Error('Email already in use')
+                const error = new Error('El correo electrónico ya está en uso')
                 res.status(409).json({ error: error.message })
+                return;
             }
+            
             const user = await User.create(req.body)
             user.password = await hashPassword(password)
 
             await user.save()
-            res.status(201).json("Account created")
+            res.status(201).json("Usuario creado con éxito")
         } catch (error) {
             // console.log(error)
-            res.status(500).json({ error: 'Error creating account' })
+            res.status(500).json({ error: 'Error creando el usuario' })
+            return;
         }
     }
 
@@ -38,20 +42,26 @@ export class AuthController {
         try {
             const user = await User.findOne({ where: { email } })
             if (!user) {
-                res.status(404).json({ error: 'User not found' })
+                const error = new Error('Usuario no encontrado')
+                res.status(404).json({ error: error.message })
+                return;
             }
 
             //check if the password is correct
             const isPasswordValid = await comparePassword(password, user.password)
             if (!isPasswordValid) {
-                res.status(401).json({ error: 'Invalid password' })
+                const error = new Error('Contraseña incorrecta')
+                res.status(401).json({ error: error.message })
+                return;
             }
 
             //generate token
             const token = generateJWT(user.id)
-            res.json(token)
+            res.send(token)
         } catch (error) {
+            // console.log(error)
             res.status(500).json({ error: 'Error logging in' })
+            return;
         }
     }
 

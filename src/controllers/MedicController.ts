@@ -10,7 +10,6 @@ import Medic from "../models/Medic";
 import Schedule from "../models/Schedule";
 
 
-
 export class MedicController {
     static createAccount = async (req: Request, res: Response) => {
         

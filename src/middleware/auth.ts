@@ -13,11 +13,14 @@ declare global {
 export const authenticate = async (req: Request, res: Response, next: NextFunction) => {
     const bearer = req.headers.authorization
     if (!bearer) {
-        res.status(401).json({ error: 'Unauthorized' })
+        const error = new Error('No Autorizado')
+        res.status(401).json({error: error.message})
+        return
     }
     const token = bearer.split(' ')[1]
     if (!token) {
         res.status(401).json({ error: 'Unauthorized' })
+        return
     }
     
     try {

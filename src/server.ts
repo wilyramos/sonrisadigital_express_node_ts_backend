@@ -6,6 +6,8 @@ import authRouter from './routes/authRouter'
 import medicRouter from './routes/medicRouter'
 import citaRouter from './routes/citaRouter'
 import MedicalRecord from './routes/medicalRecord'
+import cors from 'cors'
+import { corsConfig } from './config/cors'
 
 export async function connectDB () {
     try {
@@ -20,6 +22,8 @@ export async function connectDB () {
 connectDB()
 
 const app = express()
+app.use(cors(corsConfig))
+
 app.use(morgan('dev'))
 app.use(express.json())
 
@@ -39,9 +43,9 @@ app.use("/api/medicalrecord", MedicalRecord)
 
 //supertest
 
-app.use('/', (req, res) => {
-    res.send('Hello World')    
-})
+// app.use('/', (req, res) => {
+//     res.send('Hello World')    
+// })
 
 
 export default app
