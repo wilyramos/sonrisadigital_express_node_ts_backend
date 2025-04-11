@@ -18,12 +18,13 @@ export class MedicController {
         try {
             const emailExists = await User.findOne({ where: { email } })
             if (emailExists) {
-                const error = new Error('Email already in use')
+                const error = new Error('El correo ya está en uso')
                 res.status(409).json({ error: error.message })
+                return;
             }
 
             await Medic.create(req.body)
-            res.status(201).json("Account created")
+            res.status(201).json("Medico creado correctamente")
 
         } catch (error) {   
             res.status(500).json({ error: 'Error creating account' })

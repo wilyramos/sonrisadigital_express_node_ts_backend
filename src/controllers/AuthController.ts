@@ -16,14 +16,14 @@ export class AuthController {
 
         //checl if the user already exists
         try {
-            
+
             const emailExists = await User.findOne({ where: { email } })
             if (emailExists) {
                 const error = new Error('El correo electrónico ya está en uso')
                 res.status(409).json({ error: error.message })
                 return;
             }
-            
+
             const user = await User.create(req.body)
             user.password = await hashPassword(password)
 
@@ -35,6 +35,8 @@ export class AuthController {
             return;
         }
     }
+
+    
 
     static login = async (req: Request, res: Response) => {
         const { email, password } = req.body
@@ -90,11 +92,13 @@ export class AuthController {
         try {
             const users = await User.findAndCountAll({
                 attributes: ["id", "name", "email", "phone", "role"],
+                where: { role: "paciente" },
                 limit,
-                offset: offsetCalc
+                offset: offsetCalc,
+                order: [["createdAt", "DESC"]]
             })
             res.json({
-                data: users.rows,
+                users: users.rows,
                 total: users.count,
                 totalPages: Math.ceil(users.count / limit),
                 currentPage: offset
@@ -102,7 +106,6 @@ export class AuthController {
         } catch (error) {
             res.status(500).json({ error: 'Error getting users' })
         }
-
     }
 
     static searchUsers = async (req: Request, res: Response) => {
@@ -114,93 +117,96 @@ export class AuthController {
             const users = await User.findAll({
                 attributes: ["id", "name", "email", "phone"],
                 where: {
-                // Búsqueda por nombre, email o teléfono, con insensibilidad a mayúsculas/minúsculas
-                [Op.or]: [
-                    {
-                        name: {
-                            [Op.iLike]: `%${name}%`  // `iLike` es insensible a mayúsculas/minúsculas
+                    // Búsqueda por nombre, email o teléfono, con insensibilidad a mayúsculas/minúsculas
+                    [Op.or]: [
+                        {
+                            name: {
+                                [Op.iLike]: `%${name}%`  // `iLike` es insensible a mayúsculas/minúsculas
+                            }
+                        },
+                        {
+                            email: {
+                                [Op.iLike]: `%${name}%`
+                            }
+                        },
+                        {
+                            phone: {
+                                [Op.iLike]: `%${name}%`
+                            }
                         }
-                    },
-                    {
-                        email: {
-                            [Op.iLike]: `%${name}%`
-                        }
-                    },
-                    {
-                        phone: {
-                            [Op.iLike]: `%${name}%`
-                        }
-                    }
-                ]
-            }
-        });
-        res.json(users)
-    } catch(error) {
-        res.status(500).json({ error: 'Error searching users' })
+                    ]
+                }
+            });
+            res.json(users)
+        } catch (error) {
+            res.status(500).json({ error: 'Error searching users' })
+        }
     }
-}
 
     static updateProfile = async (req: Request, res: Response) => {
 
-    try {
-        const isAdmin = req.user.role === 'admin'
-        if (!isAdmin) {
-            res.status(403).json({ error: 'No autorizado' })
-        }
-
-        const { idUser } = req.params
-        const { name, email, phone } = req.body
-
-        // check if the user exists
-        const user = await User.findByPk(idUser
-            , {
-                attributes: ["id", "name", "email", "phone", "role"]
+        try {
+            const isAdmin = req.user.role === 'admin'
+            if (!isAdmin) {
+                res.status(403).json({ error: 'No autorizado' })
+                return;
             }
-        )
-        if (!user) {
-            res.status(404).json({ error: 'User not found' })
+
+            const { idUser } = req.params
+            const { name, email, phone } = req.body
+
+            // check if the user exists
+            const user = await User.findByPk(idUser
+                , {
+                    attributes: ["id", "name", "email", "phone", "role"]
+                }
+            )
+            if (!user) {
+                res.status(404).json({ error: 'User not found' })
+                return;
+            }
+
+            const emailExists = await User.findOne({ where: { email } })
+            if (emailExists && emailExists.id !== user.id) {
+                res.status(409).json({ error: 'Email already in use' })
+                return;
+            }
+
+            await user.update({
+                name: name || user.name,
+                email: email || user.email,
+                phone: phone || user.phone
+            })
+
+            res.json({ message: 'Profile updated' })
+
+        } catch (error) {
+            // console.log(error)
+            res.status(500).json({ error: 'Error updating profile' })
         }
-
-        const emailExists = await User.findOne({ where: { email } })
-        if (emailExists && emailExists.id !== user.id) {
-            res.status(409).json({ error: 'Email already in use' })
-        }
-
-        await user.update({
-            name: name || user.name,
-            email: email || user.email,
-            phone: phone || user.phone
-        })
-
-        res.json({ message: 'Profile updated' })
-
-    } catch (error) {
-        // console.log(error)
-        res.status(500).json({ error: 'Error updating profile' })
     }
-}
 
     static deleteUser = async (req: Request, res: Response) => {
-    try {
-        const isAdmin = req.user.role === 'admin'
-        if (!isAdmin) {
-            res.status(403).json({ error: 'No autorizado' })
+        try {
+            const isAdmin = req.user.role === 'admin'
+            if (!isAdmin) {
+                res.status(403).json({ error: 'No autorizado' })
+            }
+
+            const { idUser } = req.params
+
+            // check if the user exists
+            const user = await User.findByPk(idUser)
+            if (!user) {
+                res.status(404).json({ error: 'User not found' })
+            }
+
+            await user.destroy()
+            res.json({ message: 'User deleted' })
+
+        } catch (error) {
+            // console.log(error)
+            res.status(500).json({ error: 'Error deleting user' })
         }
-
-        const { idUser } = req.params
-
-        // check if the user exists
-        const user = await User.findByPk(idUser)
-        if (!user) {
-            res.status(404).json({ error: 'User not found' })
-        }
-
-        await user.destroy()
-        res.json({ message: 'User deleted' })
-
-    } catch (error) {
-        // console.log(error)
-        res.status(500).json({ error: 'Error deleting user' })
     }
-}
 }
