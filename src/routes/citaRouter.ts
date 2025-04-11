@@ -16,7 +16,8 @@ router.post('/',
         .notEmpty().withMessage('Patient is required'),
     body('date')
         .notEmpty().withMessage('Date is required'),
-
+    body('description')
+        .notEmpty().withMessage('Description is required'),
 
     handleInputErrors,
     AppointmentController.createAppointment

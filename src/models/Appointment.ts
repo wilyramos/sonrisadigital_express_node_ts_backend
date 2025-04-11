@@ -41,7 +41,6 @@ class Appointment extends Model {
 
     @BelongsTo(() => User)
     declare patient: User;
-    
 }
 
 

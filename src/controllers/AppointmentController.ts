@@ -10,29 +10,37 @@ export class AppointmentController {
 
         try {
             const { medicId, patientId, date, description } = req.body
+
+        
             // check if the medic exists
             const medic = await Medic.findByPk(medicId)
             if (!medic) {
-                res.status(404).json({ error: 'Medic not found' })
+                res.status(404).json({ error: 'Medico no encontrado' })
+                return;
             }
 
             // check if the patient exists
             const patient = await User.findByPk(patientId)
             if (!patient) {
-                res.status(404).json({ error: 'Patient not found' })
+                res.status(404).json({ error: 'Paciente no encontrado' })
+                return;
             }
-
 
             // check if the appointment is available
             const appointmentExists = await Appointment.findOne({
                 where: {
                     medicId,
-                    date
+                    date,
+                    status: {
+                        [Op.ne]: 'cancelled'
+                    }
+                    
                 }
             })
 
             if (appointmentExists) {
-                res.status(409).json({ error: 'Appointment already exists' })
+                res.status(409).json({ error: 'La cita ya está ocupada' })
+                return;
             }
 
             // create the appointment
@@ -49,6 +57,7 @@ export class AppointmentController {
         } catch (error) {
             // console.log(error)
             res.status(500).json({ error: 'Error creating appointment' })
+            return;
         }
     }
 
