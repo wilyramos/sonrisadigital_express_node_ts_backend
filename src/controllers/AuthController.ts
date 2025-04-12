@@ -109,39 +109,50 @@ export class AuthController {
     }
 
     static searchUsers = async (req: Request, res: Response) => {
-        const { name } = req.query
+        const { query } = req.query
 
-        console.log(name)
+        console.log(query)
 
         try {
+            // check if the user exists
+            if (!query) {
+                res.status(400).json({ error: 'Query is required' })
+                return;
+            }
+            
             const users = await User.findAll({
-                attributes: ["id", "name", "email", "phone"],
+                attributes: ["id", "name", "email", "phone", "role"],
                 where: {
                     // Búsqueda por nombre, email o teléfono, con insensibilidad a mayúsculas/minúsculas
                     [Op.or]: [
                         {
                             name: {
-                                [Op.iLike]: `%${name}%`  // `iLike` es insensible a mayúsculas/minúsculas
+                                [Op.iLike]: `%${query}%`  // `iLike` es insensible a mayúsculas/minúsculas
                             }
                         },
                         {
                             email: {
-                                [Op.iLike]: `%${name}%`
+                                [Op.iLike]: `%${query}%`
                             }
                         },
                         {
                             phone: {
-                                [Op.iLike]: `%${name}%`
+                                [Op.iLike]: `%${query}%`
                             }
                         }
-                    ]
-                }
+                    ],
+                    role: "paciente"
+                },
+                order: [["name", "ASC"]],
+                limit: 10,
             });
             res.json(users)
         } catch (error) {
             res.status(500).json({ error: 'Error searching users' })
+            return;
         }
     }
+
 
     static updateProfile = async (req: Request, res: Response) => {
 
