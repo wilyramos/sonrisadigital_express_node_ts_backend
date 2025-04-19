@@ -61,6 +61,33 @@ export class MedicController {
 
     }
 
+    static searchMedics = async (req: Request, res: Response) => {
+        const { query } = req.query
+        // console.log(query)
+        try {
+            // check if the user exists
+            if (!query) {
+                res.status(400).json({ error: 'Query is required' })
+                return;
+            }       
+            const medics = await Medic.findAll({
+                attributes: ["id", "name", "phone", "email", "speciality"],
+                where: {
+                    [Op.or]: [
+                        { name: { [Op.like]: `%${query}%` } },
+                        { email: { [Op.like]: `%${query}%` } },
+                        { speciality: { [Op.like]: `%${query}%` } },
+                        { phone: { [Op.like]: `%${query}%` } },
+                    ],
+                },
+                order: [["name", "ASC"]],
+                limit: 10,
+            })
+            res.json(medics)
+        } catch (error) {
+            res.status(500).json({ error: 'Error searching users' })
+            return;
+        }
+    }
     // static createSchedule = async (req: Request, res: Response) => {
-
 }

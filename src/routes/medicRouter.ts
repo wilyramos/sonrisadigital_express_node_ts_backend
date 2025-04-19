@@ -30,4 +30,10 @@ router.get('/medics',
     MedicController.getMedics
 )
 
+router.get('/search',
+    authenticate,
+    isAdmin,
+    MedicController.searchMedics
+)
+
 export default router;

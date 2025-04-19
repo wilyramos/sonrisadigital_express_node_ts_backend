@@ -32,7 +32,7 @@ class Appointment extends Model {
 
     @AllowNull(false)
     @Column({
-        type: DataType.ENUM("pending", "completed", "cancelled")
+        type: DataType.ENUM("pending", "confirmed", "completed", "cancelled")
     })
     declare status: string;
 

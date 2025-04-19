@@ -23,6 +23,29 @@ router.post('/',
     AppointmentController.createAppointment
 )
 
+// obtener cita por id
+router.get('/:id',
+    param('id')
+        .isNumeric().withMessage('Invalid id'),
+
+    handleInputErrors,
+    AppointmentController.getAppointmentById
+)
+
+// Actualizar el estado de la cita
+router.put('/:id/status',
+    param('id')
+        .isNumeric().withMessage('Invalid id'),
+    body('status')
+        .notEmpty().withMessage('Status is required'),
+
+    handleInputErrors,
+    AppointmentController.updateStatusAppointment
+)
+
+// Obtener todas las citas
+
+
 router.put('/cancel/:id',
     param('id')
         .isNumeric().withMessage('Invalid id'),
@@ -39,7 +62,7 @@ router.put('/reschedule/:id',
     AppointmentController.rescheduleAppointment
 )
 
-// Listados
+// Listadoss
 
 router.get("/patient/:patientId",
     param('patientId')
@@ -53,6 +76,18 @@ router.get("/medic/:medicId",
         .isNumeric().withMessage('Invalid id'),
     handleInputErrors,
     AppointmentController.getAppointmentsByMedic
+)
+
+router.get("/",
+    AppointmentController.getAppointments
+)
+
+// get appointments by date
+router.get("/citas/:date",
+    param('date')
+        .isDate().withMessage('Invalid date'),
+    handleInputErrors,
+    AppointmentController.getAppointmentByDate
 )
 
 

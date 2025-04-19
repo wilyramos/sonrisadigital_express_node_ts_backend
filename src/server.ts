@@ -15,6 +15,7 @@ export async function connectDB () {
         db.sync()
         console.log('Conectado a la base de datos'.green)
     } catch (error) {
+        console.log(error)
         console.log('Error al conectar a la base de datos'.red)
         // console.log(error)
     }

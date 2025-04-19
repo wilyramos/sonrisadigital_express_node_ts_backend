@@ -52,7 +52,7 @@ export class AppointmentController {
                 status: 'pending'
             })
 
-            res.status(201).json(appointment)
+            res.status(201).json("Cita creada con éxito")
             
         } catch (error) {
             // console.log(error)
@@ -120,6 +120,29 @@ export class AppointmentController {
         }
     }
 
+    static updateStatusAppointment = async (req: Request, res: Response) => {
+        try {
+            const { id } = req.params
+            const { status } = req.body
+            const appointment = await Appointment.findByPk(id)
+            if (!appointment) {
+                res.status(404).json({ error: 'Cita no encontrada' })
+                return;
+            }
+
+            await appointment.update({
+                status
+            })
+
+            res.json("Cita actualizada con éxito")
+
+        } catch (error) {
+            // console.log(error)
+            res.status(500).json({ error: 'Error al actualizar el estado de la cita' })            
+            return;
+        }
+    }
+
     static getAppointmentsByPatient = async (req: Request, res: Response) => {
         try {
             const { patientId } = req.params
@@ -173,6 +196,99 @@ export class AppointmentController {
         } catch (error) {
             // console.log(error)
             res.status(500).json({ error: 'Error searching appointments' })            
+        }
+    }
+
+    static getAppointments = async (req: Request, res: Response) => {
+        try {
+            const appointments = await Appointment.findAll({
+                include: [
+                    {
+                        model: Medic,
+                        as: 'medic',
+                        attributes: ['id', 'name', 'speciality', 'email', 'phone']
+                    },
+                    {
+                        model: User,
+                        as: 'patient',
+                        attributes: ['id', 'name', 'email', 'phone']
+                    }
+                ]
+            })
+            res.json(appointments)
+        } catch (error) {
+            // console.log(error)
+            res.status(500).json({ error: 'Error searching appointments' })            
+        }
+    }
+
+    static getAppointmentByDate = async (req: Request, res: Response) => {
+        try {
+            const { date } = req.params
+            console.log(date)
+            // check if the date is valid
+            const dateRegex = /^\d{4}-\d{2}-\d{2}$/
+            if (!dateRegex.test(date)) {
+                res.status(400).json({ error: 'Invalid date format. Expected format: YYYY-MM-DD' })
+                return;
+            }
+
+            const startDate = new Date(date)
+            const endDate = new Date(date)
+            endDate.setDate(endDate.getDate() + 1)
+
+            const appointments = await Appointment.findAll({
+                where: {
+                    date: {
+                        [Op.gte]: startDate,
+                        [Op.lt]: endDate
+                    }
+                },
+                include: [
+                    {
+                        model: Medic,
+                        as: 'medic',
+                        attributes: ['id', 'name', 'speciality', 'email', 'phone']
+                    },
+                    {
+                        model: User,
+                        as: 'patient',
+                        attributes: ['id', 'name', 'email', 'phone']
+                    }
+                ]
+            })
+            res.json(appointments)
+        } catch (error) {
+            // console.log(error)
+            res.status(500).json({ error: 'Error searching appointments' })            
+        }
+    }
+
+    static getAppointmentById = async (req: Request, res: Response) => {
+        try {
+            const { id } = req.params
+            const appointment = await Appointment.findByPk(id, {
+                include: [
+                    {
+                        model: Medic,
+                        as: 'medic',
+                        attributes: ['id', 'name', 'speciality', 'email', 'phone']
+                    },
+                    {
+                        model: User,
+                        as: 'patient',
+                        attributes: ['id', 'name', 'email', 'phone']
+                    }
+                ]
+            })
+            if (!appointment) {
+                res.status(404).json({ error: 'Appointment not found' })
+                return;
+            }
+            res.json(appointment)
+        } catch (error) {
+            // console.log(error)
+            res.status(500).json({ error: 'Error searching appointment' })            
         }
     }
 
