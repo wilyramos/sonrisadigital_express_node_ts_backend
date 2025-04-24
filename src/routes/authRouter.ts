@@ -71,5 +71,14 @@ router.get("/users/search",
     AuthController.searchUsers
 )
 
+// get user by id
+router.get('/user/:idUser',
+    authenticate,
+    isAdmin,
+    param('idUser').isNumeric().withMessage('Id must be a number'),
+    handleInputErrors,
+    AuthController.getUserById
+)
+
 
 export default router;

@@ -35,8 +35,6 @@ export class AuthController {
         }
     }
 
-    
-
     static login = async (req: Request, res: Response) => {
         const { email, password } = req.body
 
@@ -215,6 +213,32 @@ export class AuthController {
         } catch (error) {
             // console.log(error)
             res.status(500).json({ error: 'Error deleting user' })
+        }
+    }
+
+    static getUserById = async (req: Request, res: Response) => {
+        try {
+            const isAdmin = req.user.role === 'admin'
+            if (!isAdmin) {
+                res.status(403).json({ message: 'No autorizado' })
+                return;
+            }
+
+            const { idUser } = req.params
+
+            // check if the user exists
+            const user = await User.findByPk(idUser, {
+                attributes: ["id", "name", "email", "phone", "role"]
+            })
+            if (!user) {
+                res.status(404).json({ message: 'User not found' })
+            }
+
+            res.json(user)
+
+        } catch (error) {
+            // console.log(error)
+            res.status(500).json({ message: 'Error getting user' })
         }
     }
 }
