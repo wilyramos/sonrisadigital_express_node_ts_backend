@@ -19,8 +19,7 @@ export class AuthController {
 
             const emailExists = await User.findOne({ where: { email } })
             if (emailExists) {
-                const error = new Error('El correo electrónico ya está en uso')
-                res.status(409).json({ error: error.message })
+                res.status(409).json({ message: 'El correo electrónico ya está en uso' })
                 return;
             }
 
@@ -28,10 +27,10 @@ export class AuthController {
             user.password = await hashPassword(password)
 
             await user.save()
-            res.status(201).json("Usuario creado con éxito")
+            res.status(201).json({ message: "Usuario creado con éxito" })
         } catch (error) {
             // console.log(error)
-            res.status(500).json({ error: 'Error creando el usuario' })
+            res.status(500).json({ message: 'Error creando el usuario' })
             return;
         }
     }
@@ -44,16 +43,14 @@ export class AuthController {
         try {
             const user = await User.findOne({ where: { email } })
             if (!user) {
-                const error = new Error('Usuario no encontrado')
-                res.status(404).json({ error: error.message })
+                res.status(404).json({ message: 'Usuario no encontrado' })
                 return;
             }
 
             //check if the password is correct
             const isPasswordValid = await comparePassword(password, user.password)
             if (!isPasswordValid) {
-                const error = new Error('Contraseña incorrecta')
-                res.status(401).json({ error: error.message })
+                res.status(401).json({ message: 'Contraseña incorrecta' })
                 return;
             }
 
@@ -62,7 +59,7 @@ export class AuthController {
             res.send(token)
         } catch (error) {
             // console.log(error)
-            res.status(500).json({ error: 'Error logging in' })
+            res.status(500).json({ message: 'Error iniciando sesión' })
             return;
         }
     }
