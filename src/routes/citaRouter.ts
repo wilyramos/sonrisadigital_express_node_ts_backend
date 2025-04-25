@@ -2,12 +2,14 @@ import { Router } from 'express';
 import { handleInputErrors } from "../middleware/validation";
 import { AppointmentController } from '../controllers/AppointmentController';
 import { body, param } from "express-validator";
+import { authenticate, isAdmin } from '../middleware/auth';
 
 
 
 const router = Router();
 
 
+// Crear una cita
 router.post('/',
 
     body('medicId')
@@ -64,6 +66,7 @@ router.put('/reschedule/:id',
 
 // Listadoss
 
+// get appointments by patientId
 router.get("/patient/:patientId",
     param('patientId')
         .isNumeric().withMessage('Invalid id'),
@@ -71,6 +74,7 @@ router.get("/patient/:patientId",
     AppointmentController.getAppointmentsByPatient
 )
 
+// get appointments by medicId
 router.get("/medic/:medicId",
     param('medicId')
         .isNumeric().withMessage('Invalid id'),
@@ -78,6 +82,14 @@ router.get("/medic/:medicId",
     AppointmentController.getAppointmentsByMedic
 )
 
+
+router.get("/citas/search",
+    authenticate,
+    isAdmin,
+    AppointmentController.getAppointmentsBySearch
+)
+
+// 
 router.get("/",
     AppointmentController.getAppointments
 )
@@ -89,7 +101,6 @@ router.get("/citas/:date",
     handleInputErrors,
     AppointmentController.getAppointmentByDate
 )
-
 
 
 

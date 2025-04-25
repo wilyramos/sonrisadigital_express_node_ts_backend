@@ -11,7 +11,7 @@ export class AppointmentController {
         try {
             const { medicId, patientId, date, description } = req.body
 
-        
+
             // check if the medic exists
             const medic = await Medic.findByPk(medicId)
             if (!medic) {
@@ -34,7 +34,7 @@ export class AppointmentController {
                     status: {
                         [Op.ne]: 'cancelled'
                     }
-                    
+
                 }
             })
 
@@ -53,7 +53,7 @@ export class AppointmentController {
             })
 
             res.status(201).json("Cita creada con éxito")
-            
+
         } catch (error) {
             // console.log(error)
             res.status(500).json({ error: 'Error creating appointment' })
@@ -81,7 +81,7 @@ export class AppointmentController {
 
         } catch (error) {
             // console.log(error)
-            res.status(500).json({ error: 'Error cancelling appointment' })            
+            res.status(500).json({ error: 'Error cancelling appointment' })
         }
     }
 
@@ -116,7 +116,7 @@ export class AppointmentController {
 
         } catch (error) {
             // console.log(error)
-            res.status(500).json({ error: 'Error rescheduling appointment' })            
+            res.status(500).json({ error: 'Error rescheduling appointment' })
         }
     }
 
@@ -138,7 +138,7 @@ export class AppointmentController {
 
         } catch (error) {
             // console.log(error)
-            res.status(500).json({ error: 'Error al actualizar el estado de la cita' })            
+            res.status(500).json({ error: 'Error al actualizar el estado de la cita' })
             return;
         }
     }
@@ -167,7 +167,7 @@ export class AppointmentController {
             res.json(appointments)
         } catch (error) {
             // console.log(error)
-            res.status(500).json({ error: 'Error searching appointments' })            
+            res.status(500).json({ error: 'Error searching appointments' })
         }
     }
 
@@ -195,7 +195,7 @@ export class AppointmentController {
             res.json(appointments)
         } catch (error) {
             // console.log(error)
-            res.status(500).json({ error: 'Error searching appointments' })            
+            res.status(500).json({ error: 'Error searching appointments' })
         }
     }
 
@@ -218,7 +218,7 @@ export class AppointmentController {
             res.json(appointments)
         } catch (error) {
             // console.log(error)
-            res.status(500).json({ error: 'Error searching appointments' })            
+            res.status(500).json({ error: 'Error searching appointments' })
         }
     }
 
@@ -260,7 +260,7 @@ export class AppointmentController {
             res.json(appointments)
         } catch (error) {
             // console.log(error)
-            res.status(500).json({ error: 'Error searching appointments' })            
+            res.status(500).json({ error: 'Error searching appointments' })
         }
     }
 
@@ -288,9 +288,64 @@ export class AppointmentController {
             res.json(appointment)
         } catch (error) {
             // console.log(error)
-            res.status(500).json({ error: 'Error searching appointment' })            
+            res.status(500).json({ error: 'Error searching appointment' })
         }
     }
 
-    
+    static getAppointmentsBySearch = async (req: Request, res: Response) => {
+        try {
+            const { query } = req.query;
+
+            if (!query) {
+                res.status(400).json({ error: 'Query is required' });
+                return;
+            }
+
+            // Create a flexible where condition
+            const whereCondition: any = {
+                [Op.or]: [
+                    { description: { [Op.like]: `%${query}%` } },
+                ]
+            };
+
+            // Define the include options to join related models
+            const includeOptions: any[] = [
+                {
+                    model: Medic,
+                    as: 'medic',
+                    attributes: ['id', 'name', 'speciality', 'email', 'phone'],
+                    required: false
+                },
+                {
+                    model: User,
+                    as: 'patient',
+                    attributes: ['id', 'name', 'email', 'phone'],
+                    required: false
+                },
+            ];
+
+            whereCondition[Op.or].push(
+                { '$medic.name$': { [Op.iLike]: `%${query}%` } }, // Using iLike for case-insensitivity (PostgreSQL)
+                { '$patient.name$': { [Op.iLike]: `%${query}%` } } // Using iLike for case-insensitivity (PostgreSQL)
+            );
+
+            const citas = await Appointment.findAll({
+                where: whereCondition,
+                include: includeOptions, // <--- Add the include options here
+                order: [['date', 'ASC']],
+                limit: 10,
+            });
+
+            if (citas.length === 0) {
+                res.status(404).json({ error: 'No se encontraron citas' });
+                return;
+            }
+
+            res.json(citas);
+
+        } catch (error) {
+            console.error('Error searching appointments:', error); // Log the actual error for debugging
+            res.status(500).json({ message: 'Error searching appointments' });
+        }
+    };
 }
