@@ -196,7 +196,8 @@ export class AuthController {
         try {
             const isAdmin = req.user.role === 'admin'
             if (!isAdmin) {
-                res.status(403).json({ error: 'No autorizado' })
+                res.status(403).json({ message: 'No autorizado' })
+                return;
             }
 
             const { idUser } = req.params
@@ -204,7 +205,8 @@ export class AuthController {
             // check if the user exists
             const user = await User.findByPk(idUser)
             if (!user) {
-                res.status(404).json({ error: 'User not found' })
+                res.status(404).json({ message: 'User not found' })
+                return;
             }
 
             await user.destroy()
@@ -212,7 +214,7 @@ export class AuthController {
 
         } catch (error) {
             // console.log(error)
-            res.status(500).json({ error: 'Error deleting user' })
+            res.status(500).json({ message: 'Error deleting user' })
         }
     }
 
@@ -232,6 +234,7 @@ export class AuthController {
             })
             if (!user) {
                 res.status(404).json({ message: 'User not found' })
+                return;
             }
 
             res.json(user)
@@ -239,6 +242,23 @@ export class AuthController {
         } catch (error) {
             // console.log(error)
             res.status(500).json({ message: 'Error getting user' })
+        }
+    }
+
+    static checkPassword = async (req: Request, res: Response) => {
+        const { password } = req.body
+
+        try {
+            const user = await User.findByPk(req.user.id)
+            const isPasswordValid = await comparePassword(password, user.password)
+            if (!isPasswordValid) {
+                res.status(401).json({ message: 'Contraseña incorrecta' })
+                return;
+            }
+            res.json({ message: 'Contraseña correcta' })
+        } catch (error) {
+            // console.log(error)
+            res.status(500).json({ message: 'Error verificando la contraseña' })
         }
     }
 }
