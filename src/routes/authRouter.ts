@@ -62,7 +62,7 @@ router.get("/users",
     AuthController.getUsers
 )
 
-router.put('/update-profile/:idUser',
+router.put('/update-user/:idUser',
     authenticate,
     isAdmin,
     body('name')
@@ -71,7 +71,7 @@ router.put('/update-profile/:idUser',
         .isEmail().withMessage('Email is not valid'),
 
     handleInputErrors,
-    AuthController.updateProfile
+    AuthController.updateUser
 )
 
 router.delete('/delete-account/:idUser',

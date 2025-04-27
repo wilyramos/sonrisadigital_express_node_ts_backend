@@ -172,11 +172,11 @@ export class AuthController {
         }
     }
 
-    static updateProfile = async (req: Request, res: Response) => {
+    static updateUser = async (req: Request, res: Response) => {
         try {
             const isAdmin = req.user.role === 'admin'
             if (!isAdmin) {
-                res.status(403).json({ error: 'No autorizado' })
+                res.status(403).json({ message: 'No autorizado' })
                 return;
             }
 
@@ -184,19 +184,15 @@ export class AuthController {
             const { name, email, phone } = req.body
 
             // check if the user exists
-            const user = await User.findByPk(idUser
-                , {
-                    attributes: ["id", "name", "email", "phone", "role"]
-                }
-            )
+            const user = await User.findByPk(idUser)
             if (!user) {
-                res.status(404).json({ error: 'User not found' })
+                res.status(404).json({ message: 'User not found' })
                 return;
             }
 
             const emailExists = await User.findOne({ where: { email } })
             if (emailExists && emailExists.id !== user.id) {
-                res.status(409).json({ error: 'Email already in use' })
+                res.status(409).json({ message: 'Email already in use' })
                 return;
             }
 
