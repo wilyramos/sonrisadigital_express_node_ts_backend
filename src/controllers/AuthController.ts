@@ -35,6 +35,31 @@ export class AuthController {
         }
     }
 
+    static createUserByAdmin = async (req: Request, res: Response) => {
+        const { email } = req.body;
+
+        //checl if the user already exists
+        try {
+            const emailExists = await User.findOne({ where: { email } })
+            if (emailExists) {
+                res.status(409).json({ message: 'El correo electrónico ya está en uso' })
+                return;
+            }
+            // the email will be the same as the password
+            const password = email
+            const user = await User.create({ ...req.body, password })
+
+            user.password = await hashPassword(password)
+            await user.save()
+            
+            res.status(201).json({ message: "Usuario creado con éxito" })
+        } catch (error) {
+            // console.log(error)
+            res.status(500).json({ message: 'Error creando el usuario' })
+            return;
+        }
+    }
+
     static login = async (req: Request, res: Response) => {
         const { email, password } = req.body
 
@@ -105,7 +130,6 @@ export class AuthController {
 
     static searchUsers = async (req: Request, res: Response) => {
         const { query } = req.query
-
         console.log(query)
 
         try {
@@ -148,9 +172,7 @@ export class AuthController {
         }
     }
 
-
     static updateProfile = async (req: Request, res: Response) => {
-
         try {
             const isAdmin = req.user.role === 'admin'
             if (!isAdmin) {

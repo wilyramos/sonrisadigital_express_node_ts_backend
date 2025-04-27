@@ -26,6 +26,21 @@ router.post('/create-account',
     AuthController.createAccount
 );
 
+// Route to create a user by admin
+router.post('/create-user-by-admin',
+    authenticate,
+    isAdmin,
+    body('name')
+        .notEmpty().withMessage('Name is required'),
+    body('email')
+        .isEmail().withMessage('Email is not valid'),
+    body('phone')
+        .optional()
+        .isString().withMessage('Phone must be a string'),
+    handleInputErrors,
+    AuthController.createUserByAdmin
+);
+
 router.post('/login',
     body('email')
         .isEmail().withMessage('Email is not valid'),
