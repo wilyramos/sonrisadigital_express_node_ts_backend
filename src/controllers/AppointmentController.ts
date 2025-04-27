@@ -149,7 +149,8 @@ export class AppointmentController {
             // check if the patient exists
             const patient = await User.findByPk(patientId)
             if (!patient) {
-                res.status(404).json({ error: 'Patient not found' })
+                res.status(404).json({ message: 'Paciente no encontrado' })
+                return;
             }
 
             const appointments = await Appointment.findAll({
@@ -160,7 +161,7 @@ export class AppointmentController {
                     {
                         model: Medic,
                         as: 'medic',
-                        attributes: ['id', 'name']
+                        attributes: ['id', 'name', 'speciality', 'email', 'phone']
                     }
                 ]
             })
@@ -177,7 +178,8 @@ export class AppointmentController {
             // check if the medic exists
             const medic = await Medic.findByPk(medicId)
             if (!medic) {
-                res.status(404).json({ error: 'Medic not found' })
+                res.status(404).json({ message: 'Medico no encontrado' })
+                return;
             }
 
             const appointments = await Appointment.findAll({
