@@ -35,7 +35,7 @@ class User extends Model {
     declare phone: string;
     
 
-    @Default("paciente")
+    @Default("admin")
     @AllowNull(false)
     @Column({
         type: DataType.ENUM("paciente", "admin")
