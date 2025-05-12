@@ -102,6 +102,16 @@ router.get("/citas/:date",
     AppointmentController.getAppointmentByDate
 )
 
+// delete appointment
+router.delete('/:id',
+    authenticate,
+    isAdmin,
+    param('id')
+        .isNumeric().withMessage('Invalid id'),
+    handleInputErrors,
+    AppointmentController.deleteAppointment
+)
+
 
 
 export default router;

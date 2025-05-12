@@ -350,4 +350,23 @@ export class AppointmentController {
             res.status(500).json({ message: 'Error searching appointments' });
         }
     };
+
+    static deleteAppointment = async (req: Request, res: Response) => {
+        try {
+            const { id } = req.params
+            const appointment = await Appointment.findByPk(id)
+            if (!appointment) {
+                res.status(404).json({ message: 'Cita no encontrada' })
+                return;
+            }
+
+            await appointment.destroy();
+
+            res.json({ message: "Cita eliminada con éxito" });
+
+        } catch (error) {
+            // console.error('Error deleting appointment:', error);
+            res.status(500).json({ message: 'Error al eliminar la cita' });
+        }
+    }
 }
