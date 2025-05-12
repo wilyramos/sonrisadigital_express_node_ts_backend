@@ -37,6 +37,9 @@ router.post('/create-user-by-admin',
     body('phone')
         .optional()
         .isString().withMessage('Phone must be a string'),
+    body('dni')
+        .optional()
+        .isString().withMessage('DNI must be a string'),
     handleInputErrors,
     AuthController.createUserByAdmin
 );
@@ -52,7 +55,7 @@ router.post('/login',
     AuthController.login
 )
 
-router.get("/user", 
+router.get("/user",
     authenticate,
     AuthController.user
 );

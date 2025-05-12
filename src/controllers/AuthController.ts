@@ -14,7 +14,7 @@ export class AuthController {
 
         const { email, password } = req.body;
 
-        //checl if the user already exists
+        //check if the user already exists
         try {
 
             const emailExists = await User.findOne({ where: { email } })
@@ -36,7 +36,7 @@ export class AuthController {
     }
 
     static createUserByAdmin = async (req: Request, res: Response) => {
-        const { email } = req.body;
+        const { email, dni } = req.body;
 
         //checl if the user already exists
         try {
@@ -45,13 +45,26 @@ export class AuthController {
                 res.status(409).json({ message: 'El correo electrónico ya está en uso' })
                 return;
             }
+
+            const dniExists = await User.findOne({ where: { dni } })
+            if (dniExists) {
+                res.status(409).json({ message: 'El DNI ya está en uso' })
+                return;
+            }
+
+
+            const role = req.body.role || 'paciente'
             // the email will be the same as the password
             const password = email
-            const user = await User.create({ ...req.body, password })
+            const hashedPassword = await hashPassword(password)
+            const user = await User.create({
+                ...req.body,
+                password: hashedPassword,
+                role
+            })
 
-            user.password = await hashPassword(password)
             await user.save()
-            
+
             res.status(201).json({ message: "Usuario creado con éxito" })
         } catch (error) {
             // console.log(error)
@@ -111,7 +124,7 @@ export class AuthController {
 
         try {
             const users = await User.findAndCountAll({
-                attributes: ["id", "name", "email", "phone", "role"],
+                attributes: ["id", "name", "email", "phone", "role", "dni"],
                 where: { role: "paciente" },
                 limit,
                 offset: offsetCalc,
@@ -138,9 +151,9 @@ export class AuthController {
                 res.status(400).json({ error: 'Query is required' })
                 return;
             }
-            
+
             const users = await User.findAll({
-                attributes: ["id", "name", "email", "phone", "role"],
+                attributes: ["id", "name", "email", "phone", "role", "dni"],
                 where: {
                     // Búsqueda por nombre, email o teléfono, con insensibilidad a mayúsculas/minúsculas
                     [Op.or]: [
@@ -156,6 +169,11 @@ export class AuthController {
                         },
                         {
                             phone: {
+                                [Op.iLike]: `%${query}%`
+                            }
+                        },
+                        {
+                            dni: {
                                 [Op.iLike]: `%${query}%`
                             }
                         }
@@ -174,14 +192,9 @@ export class AuthController {
 
     static updateUser = async (req: Request, res: Response) => {
         try {
-            const isAdmin = req.user.role === 'admin'
-            if (!isAdmin) {
-                res.status(403).json({ message: 'No autorizado' })
-                return;
-            }
-
+            
             const { idUser } = req.params
-            const { name, email, phone } = req.body
+            const { name, email, phone, dni } = req.body
 
             // check if the user exists
             const user = await User.findByPk(idUser)
@@ -195,11 +208,17 @@ export class AuthController {
                 res.status(409).json({ message: 'Email already in use' })
                 return;
             }
+            const dniExists = await User.findOne({ where: { dni } })
+            if (dniExists && dniExists.id !== user.id) {
+                res.status(409).json({ message: 'DNI already in use' })
+                return;
+            }
 
             await user.update({
                 name: name || user.name,
                 email: email || user.email,
-                phone: phone || user.phone
+                phone: phone || user.phone,
+                dni: dni || user.dni
             })
 
             res.json({ message: 'Profile updated' })
@@ -248,7 +267,7 @@ export class AuthController {
 
             // check if the user exists
             const user = await User.findByPk(idUser, {
-                attributes: ["id", "name", "email", "phone", "role"]
+                attributes: ["id", "name", "email", "phone", "role", "dni"]
             })
             if (!user) {
                 res.status(404).json({ message: 'User not found' })

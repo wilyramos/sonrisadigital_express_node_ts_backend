@@ -28,12 +28,19 @@ class User extends Model {
     declare password: string;
 
     @Default(null)
-    @AllowNull(true)
+    @AllowNull(true)    
     @Column({
         type: DataType.STRING(20)
     })
     declare phone: string;
-    
+
+    @Default(null)
+    @Unique(true)
+    @AllowNull(true)
+    @Column({
+        type: DataType.STRING(100)
+    })
+    declare dni: string;
 
     @Default("admin")
     @AllowNull(false)
