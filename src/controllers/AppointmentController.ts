@@ -203,6 +203,9 @@ export class AppointmentController {
 
     static getAppointments = async (req: Request, res: Response) => {
         try {
+
+            // get limit and offset from query params
+            const { limit = 10, offset = 0 } = req.query
             const appointments = await Appointment.findAll({
                 include: [
                     {
@@ -215,9 +218,50 @@ export class AppointmentController {
                         as: 'patient',
                         attributes: ['id', 'name', 'email', 'phone']
                     }
-                ]
+                ],
+                limit: Number(limit),// limit the number of results
             })
             res.json(appointments)
+        } catch (error) {
+            // console.log(error)
+            res.status(500).json({ error: 'Error searching appointments' })
+        }
+    }
+
+     static getAppointmentsWithPagination = async (req: Request, res: Response) => {
+        try {
+
+            // get limit and offset from query params
+            const limit = parseInt(req.query.limit as string) || 10
+            const offset = parseInt(req.query.offset as string) || 1
+            const offsetCalc = (offset - 1) * limit
+            
+
+            const appointments = await Appointment.findAndCountAll({
+                include: [
+                    {
+                        model: Medic,
+                        as: 'medic',
+                        attributes: ['id', 'name', 'speciality', 'email', 'phone']
+                    },
+                    {
+                        model: User,
+                        as: 'patient',
+                        attributes: ['id', 'name', 'email', 'phone']
+                    }
+                ],
+                order: [['date', 'ASC']],
+                limit: limit,
+                offset: offsetCalc
+
+            })
+            res.json({
+                appointments: appointments.rows,
+                total: appointments.count,
+                totalPages: Math.ceil(appointments.count / limit),
+                currentPage: offset
+            })
+
         } catch (error) {
             // console.log(error)
             res.status(500).json({ error: 'Error searching appointments' })
