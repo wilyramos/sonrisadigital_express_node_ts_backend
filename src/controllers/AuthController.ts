@@ -119,25 +119,25 @@ export class AuthController {
     static getUsers = async (req: Request, res: Response) => {
 
         const limit = parseInt(req.query.limit as string) || 10
-        const offset = parseInt(req.query.offset as string) || 1
-        const offsetCalc = (offset - 1) * limit
+        const page = parseInt(req.query.page as string) || 1
+        const offset  = (page - 1) * limit // Salto
 
         try {
             const users = await User.findAndCountAll({
                 attributes: ["id", "name", "email", "phone", "role", "dni"],
                 where: { role: "paciente" },
                 limit,
-                offset: offsetCalc,
+                offset,
                 order: [["createdAt", "DESC"]]
             })
             res.json({
                 users: users.rows,
                 total: users.count,
                 totalPages: Math.ceil(users.count / limit),
-                currentPage: offset
+                currentPage: page
             })
         } catch (error) {
-            res.status(500).json({ error: 'Error getting users' })
+            res.status(500).json({ message: 'Error getting users' })
         }
     }
 
