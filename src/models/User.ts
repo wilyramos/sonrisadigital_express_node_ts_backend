@@ -42,7 +42,7 @@ class User extends Model {
     })
     declare dni: string;
 
-    @Default("admin")
+    @Default("paciente")
     @AllowNull(false)
     @Column({
         type: DataType.ENUM("paciente", "admin")

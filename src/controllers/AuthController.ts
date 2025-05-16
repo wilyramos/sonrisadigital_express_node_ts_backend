@@ -5,7 +5,7 @@ import { hashPassword } from "../utils/auth";
 import { comparePassword } from "../utils/auth";
 import { generateToken } from "../utils/token";
 import { generateJWT } from "../utils/jwt";
-import { Op } from 'sequelize';
+import { Op, where } from 'sequelize';
 
 
 
@@ -120,12 +120,23 @@ export class AuthController {
 
         const limit = parseInt(req.query.limit as string) || 10
         const page = parseInt(req.query.page as string) || 1
-        const offset  = (page - 1) * limit // Salto
+        const offset = (page - 1) * limit // Salto
+        const query = req.query.query as string || ""
 
+        const where: any = {};
+        
+        if(query) {
+            where[Op.or] = [
+                {name: {[Op.iLike]: `%${query}%`}},
+                {email: {[Op.iLike]: `%${query}%`}},
+                {phone: {[Op.iLike]: `%${query}%`}},
+                {dni: {[Op.iLike]: `%${query}%`}}
+            ]
+        }
         try {
             const users = await User.findAndCountAll({
                 attributes: ["id", "name", "email", "phone", "role", "dni"],
-                where: { role: "paciente" },
+                where: { role: "paciente", ...where },
                 limit,
                 offset,
                 order: [["createdAt", "DESC"]]
@@ -154,29 +165,11 @@ export class AuthController {
 
             const users = await User.findAll({
                 attributes: ["id", "name", "email", "phone", "role", "dni"],
-                where: {
-                    // Búsqueda por nombre, email o teléfono, con insensibilidad a mayúsculas/minúsculas
-                    [Op.or]: [
-                        {
-                            name: {
-                                [Op.iLike]: `%${query}%`  // `iLike` es insensible a mayúsculas/minúsculas
-                            }
-                        },
-                        {
-                            email: {
-                                [Op.iLike]: `%${query}%`
-                            }
-                        },
-                        {
-                            phone: {
-                                [Op.iLike]: `%${query}%`
-                            }
-                        },
-                        {
-                            dni: {
-                                [Op.iLike]: `%${query}%`
-                            }
-                        }
+                where: {[Op.or]: [
+                        {name: {[Op.iLike]: `%${query}%`}},
+                        {email: {[Op.iLike]: `%${query}%`}},
+                        {phone: {[Op.iLike]: `%${query}%`}},
+                        {dni: {[Op.iLike]: `%${query}%`}}
                     ],
                     role: "paciente"
                 },
@@ -192,7 +185,7 @@ export class AuthController {
 
     static updateUser = async (req: Request, res: Response) => {
         try {
-            
+
             const { idUser } = req.params
             const { name, email, phone, dni } = req.body
 
