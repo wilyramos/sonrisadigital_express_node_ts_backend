@@ -119,4 +119,11 @@ router.get("/report/weekly",
     AppointmentController.getAppointmentsReportWeekly
 )
 
+// get appointmets report monthly
+router.get("/report/monthly",
+    authenticate,
+    isAdmin,
+    AppointmentController.getAppointmentsReportLastYear
+)
+
 export default router;

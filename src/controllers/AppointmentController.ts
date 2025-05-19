@@ -459,4 +459,55 @@ export class AppointmentController {
             res.status(500).json({ message: 'Error al obtener citas de la semana' })
         }
     }
+
+    static getAppointmentsReportLastYear = async (req: Request, res: Response) => {
+        try {
+            const startOfCurrentYear = new Date(new Date().getFullYear(), 0, 1);
+            const endOfCurrentYear = new Date(new Date().getFullYear(), 11, 31);
+
+            console.log(startOfCurrentYear, endOfCurrentYear)
+
+            const citas = await Appointment.findAll({
+                attributes: [
+                    [fn('to_char', col('date'), 'Month'), 'monthName'],
+                    [fn('count', '*'), 'count'],
+                    [fn('extract', literal('month from date')), 'month']
+                ],
+                where: {
+                    date: {
+                        [Op.between]: [startOfCurrentYear, endOfCurrentYear]
+                    }
+                },
+                group: ['month', 'monthName'],
+                order: [[fn('extract', literal('month from date')), 'ASC']]
+            });
+
+            const diccionary = {
+                1: 'Enero',
+                2: 'Febrero',
+                3: 'Marzo',
+                4: 'Abril',
+                5: 'Mayo',
+                6: 'Junio',
+                7: 'Julio',
+                8: 'Agosto',
+                9: 'Septiembre',
+                10: 'Octubre',
+                11: 'Noviembre',
+                12: 'Diciembre'
+            };
+
+            // Format the result to include the month name and count
+            const formattedCitas = citas.map((cita: any) => ({
+                name: diccionary[cita.getDataValue('month')],
+                citas: parseInt(cita.getDataValue('count'), 10) || 0, // Default to 0 if count is null
+            }));
+
+            res.json(formattedCitas);
+
+        } catch (error) {
+            // console.log(error)
+            res.status(500).json({ message: 'Error al obtener citas del mes' })
+        }
+    }
 }
