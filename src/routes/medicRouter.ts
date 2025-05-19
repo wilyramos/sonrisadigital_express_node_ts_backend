@@ -35,6 +35,24 @@ router.get('/:medicId',
     MedicController.getMedicById
 );
 
+// DELETE medic
+router.delete('/:medicId',
+    authenticate,
+    isAdmin,
+    MedicController.deleteMedicById
+)
+
+router.put('/:medicId',
+    authenticate,
+    isAdmin,
+    body('email')
+        .isEmail().withMessage('Email is not valid'),
+    body('name')
+        .notEmpty().withMessage('Name is required'),
+    handleInputErrors,
+    MedicController.updateMedic
+)
+
 router.get('/search',
     authenticate,
     isAdmin,

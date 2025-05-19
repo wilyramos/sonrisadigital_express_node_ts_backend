@@ -104,5 +104,54 @@ export class MedicController {
             return;
         }
     }
-    // static createSchedule = async (req: Request, res: Response) => {
+
+    static deleteMedicById = async (req: Request, res: Response) => {
+        try {
+            const { medicId } = req.params
+            const medic = await Medic.findByPk(medicId)
+            if (!medic) {
+                res.status(404).json({ message: 'Medic not found' })
+                return;
+            }
+
+            await medic.destroy()
+            res.json({ message: 'Medic deleted' })
+        } catch (error) {
+            res.status(500).json({ message: 'Error deleting medic' })
+        }
+    }
+    
+    static updateMedic = async (req: Request, res: Response) => {
+        try {
+            const { medicId } = req.params
+            const { name, email, phone, speciality } = req.body
+
+            // check if the medic exists
+            const medic = await Medic.findByPk(medicId)
+            if (!medic) {
+                res.status(404).json({ message: 'Medic not found' })
+                return;
+            }
+
+            const emailExists = await Medic.findOne({ where: { email } })
+            if (emailExists && emailExists.id !== medic.id) {
+                res.status(409).json({ message: 'Email already in use' })
+                return;
+            }
+            
+
+            await medic.update({
+                name: name || medic.name,
+                email: email || medic.email,
+                phone: phone || medic.phone,
+                speciality: speciality || medic.speciality
+            })
+
+            res.json({ message: 'Medic updated' })
+
+        } catch (error) {
+            // console.log(error)
+            res.status(500).json({ message: 'Error updating medic' })
+        }
+    }
 }
