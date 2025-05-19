@@ -30,6 +30,11 @@ router.get('/medics',
     MedicController.getMedics
 )
 
+router.get('/:medicId',
+    authenticate,
+    MedicController.getMedicById
+);
+
 router.get('/search',
     authenticate,
     isAdmin,

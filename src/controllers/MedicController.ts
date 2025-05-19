@@ -31,6 +31,24 @@ export class MedicController {
         }
     }
 
+    static getMedicById = async (req: Request, res: Response) => {
+        try {
+            const { medicId } = req.params
+            const medic = await Medic.findOne({
+                where: { id: medicId }
+            })
+
+            if (!medic) {
+                res.status(404).json({ error: 'Medic not found' })
+                return;
+            }
+
+            res.json(medic)
+        } catch (error) {
+            res.status(500).json({ error: 'Error getting medic' })
+        }
+    }
+
     static getMedics = async (req: Request, res: Response) => {
         try {
             const medics = await Medic.findAll()
