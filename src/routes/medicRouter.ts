@@ -53,7 +53,8 @@ router.put('/:medicId',
     MedicController.updateMedic
 )
 
-router.get('/search',
+// Search medic  - get medics 
+router.get('/',
     authenticate,
     isAdmin,
     MedicController.searchMedics

@@ -51,7 +51,7 @@ export class MedicController {
             const medics = await Medic.findAll()
             res.json(medics)
         } catch (error) {
-            res.status(500).json({ error: 'Error getting medics' })
+            res.status(500).json({ message: 'Error getting medics' })
         }
     }
 
@@ -82,7 +82,7 @@ export class MedicController {
         try {
             // check if the user exists
             if (!query) {
-                res.status(400).json({ error: 'Query is required' })
+                res.status(400).json({ message: 'Query is required' })
                 return;
             }       
             const medics = await Medic.findAll({
@@ -100,7 +100,7 @@ export class MedicController {
             })
             res.json(medics)
         } catch (error) {
-            res.status(500).json({ error: 'Error searching users' })
+            res.status(500).json({ message: 'Error searching users' })
             return;
         }
     }
