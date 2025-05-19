@@ -2,7 +2,9 @@ import { Request, Response } from 'express';
 import Appointment from '../models/Appointment';
 import Medic from '../models/Medic';
 import User from '../models/User';
-import { Op } from 'sequelize';
+import { Op, fn, col, literal } from 'sequelize';
+import { startOfWeek, endOfWeek } from 'date-fns';
+
 
 
 export class AppointmentController {
@@ -228,14 +230,14 @@ export class AppointmentController {
         }
     }
 
-     static getAppointmentsWithPagination = async (req: Request, res: Response) => {
+    static getAppointmentsWithPagination = async (req: Request, res: Response) => {
         try {
 
             // get limit and offset from query params
             const limit = parseInt(req.query.limit as string) || 10
             const offset = parseInt(req.query.offset as string) || 1
             const offsetCalc = (offset - 1) * limit
-            
+
 
             const appointments = await Appointment.findAndCountAll({
                 include: [
@@ -411,6 +413,50 @@ export class AppointmentController {
         } catch (error) {
             // console.error('Error deleting appointment:', error);
             res.status(500).json({ message: 'Error al eliminar la cita' });
+        }
+    }
+
+    static getAppointmentsReportWeekly = async (req: Request, res: Response) => {
+        try {
+            const startOfCurrentWeek = startOfWeek(new Date(), { weekStartsOn: 1 });
+            const endOfCurrentWeek = endOfWeek(new Date(), { weekStartsOn: 1 });
+
+            const citas = await Appointment.findAll({
+                attributes: [
+                    [fn('to_char', col('date'), 'Day'), 'dayName'],
+                    [fn('count', '*'), 'count'],
+                    [fn('extract', literal('dow from date')), 'dayOfWeek']
+                ],
+                where: {
+                    date: {
+                        [Op.between]: [startOfCurrentWeek, endOfCurrentWeek]
+                    }
+                },
+                group: ['dayOfWeek', 'dayName'],
+                order: [[fn('extract', literal('dow from date')), 'ASC']]
+            });
+
+            const diccionary = {
+                0: 'Domingo',
+                1: 'Lunes',
+                2: 'Martes',
+                3: 'Miércoles',
+                4: 'Jueves',
+                5: 'Viernes',
+                6: 'Sábado',
+            };
+
+            // Format the result to include the day name and count
+            const formattedCitas = citas.map((cita: any) => ({
+                name: diccionary[cita.getDataValue('dayOfWeek')],
+                citas: parseInt(cita.getDataValue('count'), 10) || 0, // Default to 0 if count is null
+            }));
+
+            res.json(formattedCitas);
+
+        } catch (error) {
+            // console.log(error)
+            res.status(500).json({ message: 'Error al obtener citas de la semana' })
         }
     }
 }

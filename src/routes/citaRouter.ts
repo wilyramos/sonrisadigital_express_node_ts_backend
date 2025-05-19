@@ -112,6 +112,11 @@ router.delete('/:id',
     AppointmentController.deleteAppointment
 )
 
-
+// get appointmets report weekly
+router.get("/report/weekly",
+    authenticate,
+    isAdmin,
+    AppointmentController.getAppointmentsReportWeekly
+)
 
 export default router;
