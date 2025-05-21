@@ -74,6 +74,16 @@ router.get("/patient/:patientId",
     AppointmentController.getAppointmentsByPatient
 )
 
+// getAppointmentsByPatientDNI
+router.get("/paciente/dni/:dni",
+    
+    param('dni')
+        .isString().withMessage('Invalid dni'),
+    handleInputErrors,
+
+    AppointmentController.getAppointmentsByPatientDNI
+)
+
 // get appointments by medicId
 router.get("/medic/:medicId",
     param('medicId')

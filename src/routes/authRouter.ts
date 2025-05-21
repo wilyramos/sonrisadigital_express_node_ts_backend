@@ -107,5 +107,11 @@ router.post('/check-password',
     AuthController.checkPassword
 )
 
+// get user by dni  
+router.get('/user/dni/:dni',
+    param('dni').isString().withMessage('DNI must be a string'),
+    handleInputErrors,
+    AuthController.getUserByDNI
+)
 
 export default router;

@@ -174,6 +174,48 @@ export class AppointmentController {
         }
     }
 
+    static getAppointmentsByPatientDNI = async (req: Request, res: Response) => {
+        try {
+            const { dni } = req.params
+
+            // check if the dni is valid
+            // check if the patient exists and not return the password
+            const patient = await User.findOne({
+                where: {
+                    dni
+                },
+                attributes: ['id', 'name', 'email', 'phone', 'dni', 'role']
+            })
+
+            if (!patient) {
+                res.status(404).json({ message: 'Paciente no encontrado' })
+                return;
+            }
+
+            const appointments = await Appointment.findAll({
+                where: {
+                    patientId: patient.id
+                },
+                include: [
+                    {
+                        model: Medic,
+                        as: 'medic',
+                        attributes: ['id', 'name', 'speciality', 'email', 'phone']
+                    }
+                ]
+            })
+            res.json({
+                patient,
+                appointments,
+            })
+
+        } catch (error) {
+            // console.log(error)
+            res.status(500).json({ message: 'Error searching appointments' })
+            return;
+        }
+    }
+
     static getAppointmentsByMedic = async (req: Request, res: Response) => {
         try {
             const { medicId } = req.params

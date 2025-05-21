@@ -3,9 +3,9 @@ import { Request, Response } from 'express';
 import { hashPassword } from "../utils/auth";
 // import { generateToken } from "../utils/token";
 import { comparePassword } from "../utils/auth";
-import { generateToken } from "../utils/token";
+// import { generateToken } from "../utils/token";
 import { generateJWT } from "../utils/jwt";
-import { Op, where } from 'sequelize';
+import { Op } from 'sequelize';
 
 
 
@@ -288,6 +288,29 @@ export class AuthController {
         } catch (error) {
             // console.log(error)
             res.status(500).json({ message: 'Error verificando la contraseña' })
+        }
+    }
+
+    static getUserByDNI = async (req: Request, res: Response) => {
+        try {
+            const { dni } = req.params
+
+            // check if the user exists
+            const user = await User.findOne({
+                where: { dni },
+                attributes: ["id", "name", "email", "phone", "role", "dni"]
+            })
+
+            if (!user) {
+                res.status(404).json({ message: 'User not found' })
+                return;
+            }
+
+            res.json(user)
+
+        } catch (error) {
+            // console.log(error)
+            res.status(500).json({ message: 'Error getting user' })
         }
     }
 }
