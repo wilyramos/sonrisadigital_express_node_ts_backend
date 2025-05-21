@@ -94,6 +94,13 @@ router.get("/",
     AppointmentController.getAppointments
 )
 
+// get appointments with pagination
+router.get("/all/citas",
+    authenticate,
+    handleInputErrors,
+    AppointmentController.getAppointmentsWithPagination
+)
+
 // get appointments by date
 router.get("/citas/:date",
     param('date')

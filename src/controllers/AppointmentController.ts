@@ -233,11 +233,21 @@ export class AppointmentController {
     static getAppointmentsWithPagination = async (req: Request, res: Response) => {
         try {
 
-            // get limit and offset from query params
+            // get limit and offset f rom query params
             const limit = parseInt(req.query.limit as string) || 10
-            const offset = parseInt(req.query.offset as string) || 1
-            const offsetCalc = (offset - 1) * limit
+            const page = parseInt(req.query.page as string) || 1
+            const offset = (page - 1) * limit // Salto
+            const query = req.query.query as string || ""
+            const where: any = {};
 
+            if (query) {
+                where[Op.or] = [
+                    { description: { [Op.iLike]: `%${query}%` } },
+                    { '$medic.name$': { [Op.iLike]: `%${query}%` } }, 
+                    { '$patient.name$': { [Op.iLike]: `%${query}%` } }, 
+                    { '$medic.email$': { [Op.iLike]: `%${query}%` } }, 
+                ]
+            }
 
             const appointments = await Appointment.findAndCountAll({
                 include: [
@@ -252,16 +262,16 @@ export class AppointmentController {
                         attributes: ['id', 'name', 'email', 'phone']
                     }
                 ],
-                order: [['date', 'ASC']],
-                limit: limit,
-                offset: offsetCalc
-
+                where: { ...where },
+                limit,
+                offset
+                
             })
             res.json({
                 appointments: appointments.rows,
                 total: appointments.count,
                 totalPages: Math.ceil(appointments.count / limit),
-                currentPage: offset
+                currentPage: page
             })
 
         } catch (error) {
@@ -465,7 +475,7 @@ export class AppointmentController {
             const startOfCurrentYear = new Date(new Date().getFullYear(), 0, 1);
             const endOfCurrentYear = new Date(new Date().getFullYear(), 11, 31);
 
-            console.log(startOfCurrentYear, endOfCurrentYear)
+            console.log("start", startOfCurrentYear, "end", endOfCurrentYear)
 
             const citas = await Appointment.findAll({
                 attributes: [

@@ -122,7 +122,6 @@ export class AuthController {
         const page = parseInt(req.query.page as string) || 1
         const offset = (page - 1) * limit // Salto
         const query = req.query.query as string || ""
-
         const where: any = {};
         
         if(query) {
